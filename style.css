@@ -38,3 +38,9 @@ header h1 {
 
 #search { width: 100%; max-width: 420px; padding: 8px; }
 
+.chart-wrapper {
+    position: relative;
+    height: 400px; /* Adjust this to make it bigger/smaller */
+    width: 100%;
+    margin: 20px auto;
+}
