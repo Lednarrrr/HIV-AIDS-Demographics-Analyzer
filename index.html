@@ -7,44 +7,82 @@
     <title>HIV/AIDS Demographics Dashboard</title>
 </head>
 <body>
+
     <header>
-        <h1>HIV/AIDS Demographics Dashboard</h1>
-        <p id="status">Loading data...</p>
+        <div>
+            <h1>HIV/AIDS Demographics Dashboard</h1>
+            <p id="status">Loading data...</p>
+        </div>
+    
+        <div style="position: relative;">
+            <button id="filter-btn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                Filter Data
+            </button>
+    
+            <div id="filter-dropdown" class="filter-dropdown">
+                <div class="dropdown-header">
+                    <h3>Select Filters</h3>
+                    <button id="close-dropdown">&times;</button>
+                </div>
+                
+                <div class="dropdown-body" id="filters-container">
+                    </div>
+    
+                <div class="dropdown-footer">
+                    <button class="btn-secondary" id="reset-btn">Reset</button>
+                </div>
+            </div>
+        </div>
     </header>
 
     <main>
-        <section id="summary">
-            <div id="cards" class="cards"></div>
-        </section>
+        <div id="error" style="color:crimson; margin-bottom: 20px;"></div>
 
-        <div style="width: 800px; margin: 20px auto;">
-            <canvas id="myChart"></canvas>
-            <canvas id="lineChart"></canvas>
+        <div class="dashboard-grid">
+            <div class="chart-wrapper full-width">
+                <canvas id="myChart"></canvas>
+            </div>
+            
+            <div class="chart-wrapper full-width">
+                <canvas id="lineChart"></canvas>
+            </div>
+
+            <div class="chart-wrapper">
+                <canvas id="sexRatioChart"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="ageGroupChart"></canvas>
+            </div>
+
+            <div class="chart-wrapper">
+                <canvas id="riskChart"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="transmissionChart"></canvas>
+            </div>
+
         </div>
-
-        <div class="chart-wrapper">
-            <canvas id="sexRatioChart"></canvas>
-        </div>
-
-        <div class="chart-wrapper">
-            <canvas id="riskChart"></canvas>
-        </div>
-
-        <div class="chart-wrapper">
-            <canvas id="transmissionChart"></canvas>
-        </div>
-
-        <div class="chart-wrapper">
-            <canvas id="ageGroupChart"></canvas>
-        </div>
-
-        <div id="controls">
-            <input id="search" placeholder="Search (Region, Sex, Age_Group, Risk_Category)" />
-        </div>
-
-        <div id="table-container"></div>
-        <div id="error" style="color:crimson"></div>
     </main>
+
+    <footer>
+        <div class="footer-content">
+            <div>
+                <h3 style="color: #F29F67;">About This Dashboard</h3>
+                <p>HIV/AIDS Demographics Analyzer: Visualizing the rise of cases among the youth demographic in the Philippines</p>
+                <p>&copy; 2025 HIV/AIDS Demographics Dashboard</p>
+            </div>
+
+            <div class="footer-links">
+                <h3>Data Sources & References</h3>
+                <ul>
+                    <li><a href="https://doh.gov.ph/health-statistics/hiv-sti/" target="_blank">DOH HIV/STI Health Statistics</a></li>
+                    <li><a href="https://www.aidsdatahub.org/country-profiles/philippines" target="_blank">AIDS Data Hub - Philippines Profile</a></li>
+                    <li><a href="https://pia.gov.ph/wp-content/uploads/2025/03/HASP-Q4-2024.pdf" target="_blank">PIA HASP Q4 2024 Report</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>

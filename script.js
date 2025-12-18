@@ -1,6 +1,7 @@
+let GLOBAL_DATA = [];
+
 async function fetchAndRenderCSV() {
     const statusEl = document.getElementById('status');
-    const container = document.getElementById('table-container');
 
     try {
         // 1. Fetch from your Python Route instead of the file directly
@@ -13,6 +14,10 @@ async function fetchAndRenderCSV() {
         
         // 3. CHANGE: Convert text to JSON using our helper function
         const data = parseCsvToObjects(csvText);
+        GLOBAL_DATA = data;
+        statusEl.textContent = `Loaded ${data.length} rows`;
+        if (data.error) throw new Error(data.error);
+        initFilters(data);
         renderBarChart(data);
         renderLineChart(data); // NEW: Yearly Trend Line Chart
         renderSexRatioChart(data);
@@ -20,20 +25,8 @@ async function fetchAndRenderCSV() {
         renderTransmissionChart(data);
         renderAgeGroupChart(data);
 
-        if (data.error) throw new Error(data.error);
-
-        // 3. Build table from JSON data
-        const table = buildTableFromJSON(data); 
         
-        container.innerHTML = '';
-        container.appendChild(table);
-        statusEl.textContent = `Loaded ${data.length} rows`;
-
-        // Search logic remains mostly the same
-        const search = document.getElementById('search');
-        search.addEventListener('input', () => {
-            filterTable(table, search.value.trim().toLowerCase());
-        });
+        
 
     } catch (err) {
         console.error(err);
@@ -63,42 +56,6 @@ function parseCsvToObjects(csvText) {
         }
     }
     return result;
-}
-
-// NEW: This function is much simpler than parsing CSV text strings!
-function buildTableFromJSON(data) {
-    const table = document.createElement('table');
-    table.className = 'data-table';
-    
-    if (data.length === 0) return table;
-
-    // A. Create Headers from the keys of the first object
-    const headers = Object.keys(data[0]);
-    const thead = document.createElement('thead');
-    const headRow = document.createElement('tr');
-    
-    headers.forEach(h => {
-        const th = document.createElement('th');
-        th.textContent = h; // Make sure headers match CSV columns
-        headRow.appendChild(th);
-    });
-    thead.appendChild(headRow);
-    table.appendChild(thead);
-
-    // B. Create Body
-    const tbody = document.createElement('tbody');
-    data.forEach(rowObj => {
-        const tr = document.createElement('tr');
-        headers.forEach(key => {
-            const td = document.createElement('td');
-            td.textContent = rowObj[key];
-            tr.appendChild(td);
-        });
-        tbody.appendChild(tr);
-    });
-    table.appendChild(tbody);
-    
-    return table;
 }
 
 function renderBarChart(rawData) {
@@ -168,30 +125,17 @@ function renderBarChart(rawData) {
 // --- NEW FUNCTION: Renders the Line Graph per Year ---
 function renderLineChart(rawData) {
     const yearCounts = {};
-
     rawData.forEach(row => {
-        // row.Diagnosis_Date format is "YYYY-MM-DD"
-        // We take the first 4 characters to get the Year
         const dateStr = row.Diagnosis_Date || row.diagnosis_date;
         if (dateStr) {
             const year = dateStr.substring(0, 4);
-            
-            if (yearCounts[year]) {
-                yearCounts[year]++;
-            } else {
-                yearCounts[year] = 1;
-            }
+            yearCounts[year] = (yearCounts[year] || 0) + 1;
         }
     });
-
-    // Sort years (2010, 2011, ... 2024)
     const years = Object.keys(yearCounts).sort();
     const counts = years.map(year => yearCounts[year]);
 
-    // Draw the Line Chart
-    // Make sure you have <canvas id="lineChart"></canvas> in your HTML
     const ctx = document.getElementById('lineChart').getContext('2d');
-
     if (window.myLineChart) window.myLineChart.destroy();
 
     window.myLineChart = new Chart(ctx, {
@@ -201,22 +145,57 @@ function renderLineChart(rawData) {
             datasets: [{
                 label: 'Cases per Year (The Rise)',
                 data: counts,
-                borderColor: '#FF6384', // Red/Pink line
-                backgroundColor: 'rgba(255, 99, 132, 0.2)', // Light fill under line
-                tension: 0.4, // Makes the line slightly curved (smooth)
-                fill: true
+                borderColor: '#FF6384',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                tension: 0.3,
+                fill: true,
+                
+                // --- VISUAL DISTINCTION SETTINGS ---
+                pointRadius: 4,               // Normal dot size
+                pointBackgroundColor: '#fff', // White center
+                pointBorderColor: '#FF6384',  // Pink border
+                pointBorderWidth: 2,
+                
+                // When hovering:
+                pointHoverRadius: 10,          // Dot grows 2x bigger
+                pointHoverBackgroundColor: '#FF6384', // Turns solid pink
+                pointHoverBorderColor: '#fff',
+                pointHoverBorderWidth: 3
             }]
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            
+            // --- 1. MAKE IT SNAPPY (No lag) ---
+            interaction: {
+                mode: 'index',    // Tooltip shows anywhere in the vertical column
+                intersect: false, // You don't need to touch the dot exactly
+            },
+            
+            // --- 2. REMOVE HOVER DELAY ---
+            hover: {
+                animationDuration: 0 // Instant reaction
+            },
+
             plugins: {
-                title: {
-                    display: true,
-                    text: 'Annual HIV Case Trend (2010-2024)'
+                title: { 
+                    display: true, 
+                    text: 'Annual HIV Case Trend (2010-2024)',
+                    color: '#333',
+                    font: { size: 14 }
+                },
+                tooltip: {
+                    animation: false, // Tooltip follows mouse instantly
+                    backgroundColor: 'rgba(30, 30, 44, 0.9)', // Darker background
+                    titleColor: '#F29F67', // Your Brand Orange
+                    padding: 10,
+                    displayColors: false, // Hides the little color box in tooltip for cleaner look
                 }
             },
-            scales: {
-                y: { beginAtZero: true }
+            scales: { 
+                y: { beginAtZero: true },
+                x: { grid: { display: false } } // Cleaner look
             }
         }
     });
@@ -527,13 +506,147 @@ function renderAgeGroupChart(rawData) {
     });
 }
 
-// Keep your existing filterTable function, it works fine!
-function filterTable(table, q) {
-    const rows = table.tBodies[0].rows;
-    for (const row of rows) {
-        const text = row.textContent.toLowerCase();
-        row.style.display = q === '' || text.includes(q) ? '' : 'none';
+/* --- ADD THIS TO THE BOTTOM OF SCRIPT.JS --- */
+
+// --- UI INTERACTION ---
+const filterBtn = document.getElementById('filter-btn');
+const dropdown = document.getElementById('filter-dropdown');
+const closeBtn = document.getElementById('close-dropdown');
+const resetBtn = document.getElementById('reset-btn');
+
+// Toggle Menu
+filterBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdown.classList.toggle('active');
+});
+
+// Close Menu
+closeBtn.addEventListener('click', () => {
+    dropdown.classList.remove('active');
+});
+
+// Reset Button
+resetBtn.addEventListener('click', () => {
+    document.querySelectorAll('#filters-container input').forEach(box => box.checked = false);
+    applyFilters(); // Reset charts immediately
+});
+
+// Close when clicking outside
+window.addEventListener('click', (e) => {
+    if (!dropdown.contains(e.target) && !filterBtn.contains(e.target)) {
+        dropdown.classList.remove('active');
     }
+});
+dropdown.addEventListener('click', (e) => e.stopPropagation());
+
+
+// --- 1. FILTER GENERATOR ---
+function initFilters(data) {
+    const container = document.getElementById('filters-container');
+    container.innerHTML = ''; 
+
+    const categories = [
+        { label: 'Year', key: 'Diagnosis_Date', isYear: true },
+        { label: 'Region', key: 'Region' },
+        { label: 'Sex', key: 'Sex' },
+        { label: 'Risk Category', key: 'Risk_Category' }
+    ];
+
+    categories.forEach(cat => {
+        const uniqueValues = new Set();
+        data.forEach(row => {
+            let val = row[cat.key] || row[cat.key.toLowerCase()];
+            if (cat.isYear && val) val = val.substring(0, 4); 
+            if (val) uniqueValues.add(val);
+        });
+
+        const sortedValues = Array.from(uniqueValues).sort();
+
+        const section = document.createElement('div');
+        section.className = 'filter-section';
+        
+        const title = document.createElement('h4');
+        title.textContent = cat.label;
+        section.appendChild(title);
+
+        const list = document.createElement('div');
+        list.className = 'checkbox-group';
+
+        sortedValues.forEach(val => {
+            const label = document.createElement('label');
+            label.className = 'checkbox-item';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = val;
+            checkbox.dataset.category = cat.key;
+            checkbox.dataset.isYear = cat.isYear || false;
+            
+            // *** THE CHANGE: Update immediately when clicked ***
+            checkbox.addEventListener('change', applyFilters);
+
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(` ${val}`));
+            list.appendChild(label);
+        });
+
+        section.appendChild(list);
+        container.appendChild(section);
+    });
+}
+
+// --- 2. APPLY FILTERS (Runs immediately on change) ---
+function applyFilters() {
+    // A. Gather selected values
+    const checkboxes = document.querySelectorAll('#filters-container input[type="checkbox"]');
+    const selected = {};
+    let hasSelection = false;
+
+    checkboxes.forEach(box => {
+        if (box.checked) {
+            hasSelection = true;
+            const cat = box.dataset.category;
+            if (!selected[cat]) selected[cat] = [];
+            selected[cat].push(box.value);
+        }
+    });
+
+    // B. Filter the Data
+    const filteredData = GLOBAL_DATA.filter(row => {
+        let match = true;
+
+        for (const category in selected) {
+            const allowedValues = selected[category];
+            let rowValue = row[category] || row[category.toLowerCase()];
+
+            // Handle Year Special Case
+            const referenceBox = document.querySelector(`input[data-category="${category}"]`);
+            if (referenceBox && referenceBox.dataset.isYear === 'true' && rowValue) {
+                rowValue = rowValue.substring(0, 4);
+            }
+
+            if (!allowedValues.includes(rowValue)) {
+                match = false;
+                break;
+            }
+        }
+        return match;
+    });
+
+    // C. Update Status
+    const count = filteredData.length;
+    document.getElementById('status').textContent = hasSelection 
+        ? `${count} records found (Filtered)` 
+        : `${count} total records`;
+
+    // D. Update Charts
+    // You asked for Bar Chart filtering first, but it's safe to update all of them
+    renderBarChart(filteredData);
+    renderLineChart(filteredData);
+    renderSexRatioChart(filteredData);
+    renderRiskChart(filteredData);
+    renderTransmissionChart(filteredData);
+    renderAgeGroupChart(filteredData);
 }
 
 document.addEventListener('DOMContentLoaded', fetchAndRenderCSV);

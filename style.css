@@ -1,46 +1,242 @@
+/* --- GLOBAL VARIABLES & RESET --- */
+:root {
+    --brand-dark: #1E1E2C;
+    --brand-accent: #F29F67;
+    --bg-light: #f4f6f8;
+    --text-main: #333333;
+    --text-muted: #666666;
+    --white: #ffffff;
+}
+
 body {
-	font-family: Arial, Helvetica, sans-serif;
-	margin: 16px;
-	background: #f7f9fb;
-	color: #111;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-light);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* --- HEADER --- */
+header {
+    background-color: var(--brand-dark);
+    padding: 15px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    position: relative;
+    z-index: 500;
 }
 
 header h1 {
-	margin: 0 0 8px 0;
+    margin: 0;
+    color: var(--white);
+    font-size: 1.4rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
-#controls { margin: 12px 0; }
-
-#summary { margin: 12px 0 18px 0; }
-.cards { display:flex; gap:12px; flex-wrap:wrap; }
-.card { background: #fff; padding: 14px; border-radius: 8px; box-shadow: 0 1px 4px rgba(16,24,40,0.06); min-width: 140px; }
-.card-title { font-size: 13px; color: #4b5563; }
-.card-value { font-size: 20px; font-weight: 600; margin-top:6px; }
-
-.data-table {
-	width: 100%;
-	border-collapse: collapse;
-	background: #fff;
+#status {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    margin: 5px 0 0 0;
 }
 
-.data-table th, .data-table td {
-	border: 1px solid #e1e6eb;
-	padding: 8px 10px;
-	text-align: left;
-	font-size: 13px;
+/* --- FILTER BUTTON (Orange Branding) --- */
+#filter-btn {
+    background-color: var(--brand-accent);
+    color: var(--white);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(242, 159, 103, 0.3);
 }
 
-.data-table thead { background: #f0f4f8; }
+#filter-btn:hover {
+    background-color: #e08e55; /* Slightly darker orange */
+    transform: translateY(-1px);
+}
 
-.data-table tbody tr:nth-child(even) { background: #fbfcfd; }
+#filter-btn svg {
+    margin-right: 8px;
+    stroke: var(--white);
+}
 
-#table-container { overflow: auto; max-height: 70vh; }
+/* --- FILTER DROPDOWN --- */
+.filter-dropdown {
+    position: absolute;
+    top: 120%;
+    right: 0;
+    width: 600px;
+    max-height: 60vh;
+    background: var(--white);
+    border: 1px solid #e1e1e1;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-in-out;
+}
 
-#search { width: 100%; max-width: 420px; padding: 8px; }
+.filter-dropdown.active {
+    display: flex;
+}
+
+.dropdown-header {
+    padding: 15px 20px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 8px 8px 0 0;
+}
+
+.dropdown-header h3 { margin: 0; color: var(--brand-dark); }
+
+.dropdown-body {
+    padding: 20px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+/* Checkboxes */
+.filter-section h4 {
+    margin: 0 0 10px 0;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.checkbox-group { display: flex; flex-direction: column; gap: 8px; }
+
+.checkbox-item {
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    color: var(--text-main);
+}
+
+.checkbox-item input {
+    margin-right: 10px;
+    accent-color: var(--brand-accent); /* Orange Checkbox */
+    width: 16px;
+    height: 16px;
+}
+
+.dropdown-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #eee;
+    text-align: right;
+    background: #fff;
+    border-radius: 0 0 8px 8px;
+}
+
+.btn-secondary {
+    background: #f1f1f1;
+    border: none;
+    color: var(--text-main);
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+.btn-secondary:hover { background: #e2e2e2; }
+
+#close-dropdown {
+    background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);
+}
+
+/* --- MAIN DASHBOARD LAYOUT --- */
+main {
+    flex: 1;
+    padding: 30px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Grid System */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 Columns */
+    gap: 25px;
+}
+
+.full-width {
+    grid-column: span 2;
+}
 
 .chart-wrapper {
+    background: var(--white);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    border: 1px solid #eaeaea;
+    height: 380px;
     position: relative;
-    height: 400px; /* Adjust this to make it bigger/smaller */
-    width: 100%;
-    margin: 20px auto;
+}
+
+/* --- FOOTER --- */
+footer {
+    background-color: var(--brand-dark);
+    color: #a0a0b0;
+    padding: 40px;
+    margin-top: 40px;
+    font-size: 0.9rem;
+}
+
+.footer-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.footer-links h3 { color: var(--brand-accent); margin-top: 0; font-size: 1rem; }
+.footer-links ul { list-style: none; padding: 0; margin: 0; }
+.footer-links li { margin-bottom: 8px; }
+
+.footer-links a {
+    color: var(--white);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.footer-links a:hover {
+    color: var(--brand-accent);
+    text-decoration: underline;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .full-width { grid-column: span 1; }
+    header { flex-direction: column; gap: 15px; text-align: center; }
+    .filter-dropdown { width: 90%; left: 5%; }
 }
