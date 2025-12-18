@@ -6,10 +6,13 @@ async function fetchAndRenderCSV() {
         // 1. Fetch from your Python Route instead of the file directly
         const res = await fetch('datasets/data.csv');
         
-        if (!res.ok) throw new Error(`Server error: ${res.status}`);
+        if (!res.ok) throw new Error(`Failed to load CSV: ${res.status}`);
         
-        // 2. Parse as JSON (JavaScript Object) instead of Text
-        const data = await res.json(); 
+        // 2. CHANGE: Get text instead of JSON
+        const csvText = await res.text();
+        
+        // 3. CHANGE: Convert text to JSON using our helper function
+        const data = parseCsvToObjects(csvText);
         renderBarChart(data);
         renderLineChart(data); // NEW: Yearly Trend Line Chart
         renderSexRatioChart(data);
