@@ -4,20 +4,18 @@ Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
 let GLOBAL_DATA = [];
 
 async function fetchAndRenderCSV() {
-    const statusEl = document.getElementById('status');
 
     try {
         const res = await fetch('datasets/data.csv');
-        if (!res.ok) throw new Error(`Failed to load CSV: ${res.status}`);
         
         const csvText = await res.text();
         const data = parseCsvToObjects(csvText);
         
         GLOBAL_DATA = data;
-        statusEl.textContent = `Loaded ${data.length} rows`;
         if (data.error) throw new Error(data.error);
         
         initFilters(data);
+        renderSummaryCards(data);
         renderBarChart(data);
         renderLineChart(data);
         renderSexRatioChart(data);
@@ -27,7 +25,6 @@ async function fetchAndRenderCSV() {
 
     } catch (err) {
         console.error(err);
-        statusEl.textContent = 'Failed to load data';
         document.getElementById('error').textContent = err.message;
     }
 }
@@ -395,6 +392,7 @@ function initFilters(data) {
 
     const categories = [
         { label: 'Year', key: 'Diagnosis_Date', isYear: true },
+        { label: 'Age Group', key: 'Age_Group' },
         { label: 'Region', key: 'Region' },
         { label: 'Sex', key: 'Sex' },
         { label: 'Risk Category', key: 'Risk_Category' },
@@ -475,16 +473,106 @@ function applyFilters() {
     });
 
     const count = filteredData.length;
-    document.getElementById('status').textContent = hasSelection 
-        ? `${count} records found (Filtered)` 
-        : `${count} total records`;
 
+    
+    renderSummaryCards(filteredData);
     renderBarChart(filteredData);
     renderLineChart(filteredData);
     renderSexRatioChart(filteredData);
     renderRiskChart(filteredData);
     renderTransmissionChart(filteredData);
     renderAgeGroupChart(filteredData);
+}
+
+function renderSummaryCards(data) {
+    const total = data.length;
+    const totalEl = document.getElementById('kpi-total');
+    const totalTextEl = document.getElementById('kpi-total-text');
+    
+    if (totalEl) {
+        totalEl.textContent = total.toLocaleString();
+        totalTextEl.textContent = (total === GLOBAL_DATA.length) 
+            ? "Total Loaded Rows" 
+            : "Filtered Records";
+    }
+
+    const yearCounts = {};
+    data.forEach(row => {
+        const dateStr = row.Diagnosis_Date || row.diagnosis_date;
+        if (dateStr) {
+            const y = dateStr.substring(0, 4);
+            yearCounts[y] = (yearCounts[y] || 0) + 1;
+        }
+    });
+
+    const sortedYears = Object.keys(yearCounts).sort();
+    const growthEl = document.getElementById('kpi-growth');
+    const growthText = document.getElementById('kpi-growth-text');
+
+    if (sortedYears.length >= 2) {
+        const latestYear = sortedYears[sortedYears.length - 1];
+        const prevYear = sortedYears[sortedYears.length - 2];
+        const latestCount = yearCounts[latestYear];
+        const prevCount = yearCounts[prevYear];
+
+        const growthRate = ((latestCount - prevCount) / prevCount) * 100;
+        const formattedGrowth = growthRate.toFixed(1) + '%';
+
+        growthEl.textContent = (growthRate > 0 ? '+' : '') + formattedGrowth;
+        growthText.textContent = `Cases in ${latestYear} vs ${prevYear}`;
+
+        if (growthRate > 0) growthEl.style.color = '#FF6384';
+        else growthEl.style.color = '#4BC0C0';
+    } else {
+        growthEl.textContent = "N/A";
+        growthText.textContent = "Select >1 Year";
+        growthEl.style.color = "#fff";
+    }
+
+    const youthCount = data.filter(r => {
+        const group = r.Age_Group || r.age_group;
+        return group === '15-24';
+    }).length;
+
+    const percent = total > 0 ? ((youthCount / total) * 100).toFixed(1) + '%' : '0%';
+    
+    const shareEl = document.getElementById('kpi-youth-share');
+    const shareTextEl = document.getElementById('kpi-youth-text');
+    
+    if (shareEl) {
+        shareEl.textContent = percent;
+        shareEl.style.color = '#F29F67';
+    }
+    if (shareTextEl) {
+        shareTextEl.textContent = `${youthCount.toLocaleString()} Youth Cases`;
+    }
+
+    const modes = {};
+    data.forEach(r => {
+        const m = r.Mode_of_Transmission || r.mode_of_transmission;
+        if (m) {
+            modes[m] = (modes[m] || 0) + 1;
+        }
+    });
+
+    const topMode = Object.keys(modes).sort((a,b) => modes[b] - modes[a])[0];
+    
+    const modeEl = document.getElementById('kpi-mode');
+    const modeTextEl = document.getElementById('kpi-mode-text');
+
+    if (modeEl) {
+        modeEl.textContent = topMode || '-';
+        if (topMode && topMode.length > 15) {
+            modeEl.style.fontSize = "1.1rem";
+        } else {
+            modeEl.style.fontSize = "1.5rem";
+        }
+    }
+    
+    if (modeTextEl && topMode) {
+        const count = modes[topMode];
+        modeTextEl.textContent = `${count.toLocaleString()} cases recorded`;
+    }
 }
 
 document.addEventListener('DOMContentLoaded', fetchAndRenderCSV);

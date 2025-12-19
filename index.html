@@ -10,8 +10,7 @@
 
     <header>
         <div>
-            <h1>HIV/AIDS Demographics Dashboard</h1>
-            <p id="status">Loading data...</p>
+            <h1>HIV/AIDS Demographics Analyzer</h1>
         </div>
     
         <div style="position: relative;">
@@ -43,23 +42,51 @@
             Actual individual HIV/AIDS case records are strictly confidential under <strong>RA 11166 (Philippine HIV and AIDS Policy Act of 2018)</strong> and the <strong>Data Privacy Act of 2012</strong>. 
             For official government statistics, please refer to the <a href="https://doh.gov.ph/health-statistics/hiv-sti/" target="_blank">DOH Epidemiology Bureau</a>.
         </div>
-        
+
         <div id="error" style="color:crimson; margin-bottom: 20px;"></div>
 
-        <div class="dashboard-grid">
-            <div class="chart-wrapper full-width">
-                <canvas id="myChart"></canvas>
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <h3>Total Cases</h3>
+                <p id="kpi-total">0</p>
+                <small id="kpi-total-text" style="color: #aaa;">Active Records</small>
             </div>
-            
-            <div class="chart-wrapper full-width">
+
+            <div class="kpi-card highlight">
+                <h3>Annual Growth Rate</h3>
+                <p id="kpi-growth">0%</p>
+                <small id="kpi-growth-text" style="color: #aaa;">Calculating...</small>
+            </div>
+
+            <div class="kpi-card highlight">
+                <h3>Youth Share (15-24)</h3>
+                <p id="kpi-youth-share">0%</p>
+                <small id="kpi-youth-text" style="color: #aaa;">of Total Cases</small>
+            </div>
+
+            <div class="kpi-card">
+                <h3>Primary Driver</h3>
+                <p id="kpi-mode" style="font-size: 1.5rem;">-</p>
+                <small id="kpi-mode-text" style="color: #aaa;">Most common mode</small>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+
+            <div class="chart-wrapper">
                 <canvas id="lineChart"></canvas>
+            </div>
+
+            <div class="chart-wrapper">
+                <canvas id="ageGroupChart"></canvas>
             </div>
 
             <div class="chart-wrapper">
                 <canvas id="sexRatioChart"></canvas>
             </div>
+
             <div class="chart-wrapper">
-                <canvas id="ageGroupChart"></canvas>
+                <canvas id="myChart"></canvas>
             </div>
 
             <div class="chart-wrapper">
@@ -77,7 +104,7 @@
             <div>
                 <h3 style="color: #F29F67;">About This Dashboard</h3>
                 <p>HIV/AIDS Demographics Analyzer: Visualizing the rise of cases among the youth demographic in the Philippines</p>
-                <p>&copy; 2025 HIV/AIDS Demographics Dashboard</p>
+                <p>&copy; 2025 HIV/AIDS Demographics Analyzer</p>
             </div>
 
             <div class="footer-links">
