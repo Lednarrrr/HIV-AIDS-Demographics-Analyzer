@@ -1,4 +1,4 @@
-# 🇵🇭 HIV/AIDS Demographics Dashboard (Philippines)
+# 🇵🇭 HIV/AIDS Demographics Analyzer (Philippines)
 
 An interactive data visualization dashboard designed to analyze and display demographic trends regarding HIV/AIDS cases in the Philippines from **2010 to 2024**, with a specific focus on the rising cases among the **Youth Demographic (15-24)**.
 
