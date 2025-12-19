@@ -19,17 +19,20 @@
                 Filter Data
             </button>
     
-            <div id="filter-dropdown" class="filter-dropdown">
+            <div class="filter-dropdown" id="filter-dropdown">
                 <div class="dropdown-header">
-                    <h3>Select Filters</h3>
+                    <div class="header-text">
+                        <h3>Filter Data</h3>
+                        <small>Click once to <strong>Include</strong> (<span style="color:var(--brand-accent)">✓</span>), again to <strong>Exclude</strong> (<span style="color:#ff4d4d">✕</span>)</small>
+                    </div>
                     <button id="close-dropdown">&times;</button>
                 </div>
                 
                 <div class="dropdown-body" id="filters-container">
                     </div>
-    
+                
                 <div class="dropdown-footer">
-                    <button class="btn-secondary" id="reset-btn">Reset</button>
+                    <button id="reset-btn" class="btn-secondary">Reset Filters</button>
                 </div>
             </div>
         </div>

@@ -375,7 +375,9 @@ closeBtn.addEventListener('click', () => {
 });
 
 resetBtn.addEventListener('click', () => {
-    document.querySelectorAll('#filters-container input').forEach(box => box.checked = false);
+    document.querySelectorAll('.checkbox-item').forEach(label => {
+        label.dataset.state = 'neutral';
+    });
     applyFilters(); 
 });
 
@@ -423,13 +425,29 @@ function initFilters(data) {
             const label = document.createElement('label');
             label.className = 'checkbox-item';
             
+            label.dataset.state = 'neutral';
+
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.value = val;
             checkbox.dataset.category = cat.key;
             checkbox.dataset.isYear = cat.isYear || false;
             
-            checkbox.addEventListener('change', applyFilters);
+            label.addEventListener('click', (e) => {
+                e.preventDefault();
+
+                const currentState = label.dataset.state;
+                
+                if (currentState === 'neutral') {
+                    label.dataset.state = 'include';
+                } else if (currentState === 'include') {
+                    label.dataset.state = 'exclude';
+                } else {
+                    label.dataset.state = 'neutral';
+                }
+
+                applyFilters();
+            });
 
             label.appendChild(checkbox);
             label.appendChild(document.createTextNode(` ${val}`));
@@ -442,39 +460,53 @@ function initFilters(data) {
 }
 
 function applyFilters() {
-    const checkboxes = document.querySelectorAll('#filters-container input[type="checkbox"]');
-    const selected = {};
+    const activeFilters = {};
     let hasSelection = false;
 
-    checkboxes.forEach(box => {
-        if (box.checked) {
-            hasSelection = true;
-            const cat = box.dataset.category;
-            if (!selected[cat]) selected[cat] = [];
-            selected[cat].push(box.value);
+    document.querySelectorAll('.checkbox-item').forEach(label => {
+        const state = label.dataset.state;
+        
+        if (state === 'neutral' || !state) return; 
+
+        hasSelection = true;
+        const input = label.querySelector('input');
+        const cat = input.dataset.category;
+        const val = input.value;
+        const isYear = input.dataset.isYear === 'true';
+
+        if (!activeFilters[cat]) {
+            activeFilters[cat] = { include: [], exclude: [], isYear: isYear };
         }
+
+        activeFilters[cat][state].push(val);
     });
 
     const filteredData = GLOBAL_DATA.filter(row => {
         let match = true;
-        for (const category in selected) {
-            const allowedValues = selected[category];
-            let rowValue = row[category] || row[category.toLowerCase()];
-            const referenceBox = document.querySelector(`input[data-category="${category}"]`);
-            if (referenceBox && referenceBox.dataset.isYear === 'true' && rowValue) {
+
+        for (const cat in activeFilters) {
+            const config = activeFilters[cat];
+            let rowValue = row[cat] || row[cat.toLowerCase()];
+            
+            if (config.isYear && rowValue) {
                 rowValue = rowValue.substring(0, 4);
             }
-            if (!allowedValues.includes(rowValue)) {
+
+            if (config.exclude.includes(rowValue)) {
                 match = false;
                 break;
+            }
+
+            if (config.include.length > 0) {
+                if (!config.include.includes(rowValue)) {
+                    match = false;
+                    break;
+                }
             }
         }
         return match;
     });
 
-    const count = filteredData.length;
-
-    
     renderSummaryCards(filteredData);
     renderBarChart(filteredData);
     renderLineChart(filteredData);
